@@ -1,0 +1,32 @@
+{
+  "name": "ottometric-demo",
+  "version": "1.0.0",
+  "description": "This is only for the Demo purpose",
+  "scripts": {
+    "test": "npm run clean && playwright test",
+    "test:api": "npm run clean && playwright test --project=api",
+    "test:ui": "npm run clean && playwright test --project=ui",
+    "test:ui:debug": "npm run clean && playwright test --project=ui --debug",
+    "typecheck": "tsc --noEmit",
+    "report:open": "playwright show-report",
+    "allure:report:open": "allure generate --clean ./allure-results -o ./allure-report && allure open ./allure-report",
+    "clean": "rimraf allure-results allure-report"
+  },
+  "keywords": [],
+  "author": "Aleksandar Djurendic",
+  "license": "ISC",
+  "private": true,
+  "engines": {
+    "node": ">=20 <26"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^22.20.5",
+    "allure-commandline": "^2.46.1",
+    "allure-js-commons": "^3.13.0",
+    "allure-playwright": "^3.13.0",
+    "dotenv": "^18.0.6",
+    "rimraf": "^6.1.3",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,163 @@
+name: Playwright tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Tests to run
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - ui
+          - api
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Playwright - ${{ inputs.suite }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+
+    outputs:
+      allure_generated: ${{ steps.allure.outputs.generated }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Setup Java for Allure
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npm run typecheck
+
+      - name: Install Chromium
+        if: inputs.suite != 'api'
+        run: npx playwright install --with-deps chromium
+
+      - name: Remove previous checkout screenshot
+        if: inputs.suite != 'api'
+        run: rm -f docs/screenshots/checkout-success.png
+
+      - name: Run tests
+        env:
+          SUITE: ${{ inputs.suite }}
+          SAUCE_STANDARD_USERNAME: ${{ secrets.SAUCE_STANDARD_USERNAME }}
+          SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+        run: |
+          case "$SUITE" in
+            all) npm test ;;
+            ui) npm run test:ui ;;
+            api) npm run test:api ;;
+            *) echo "Unsupported suite: $SUITE"; exit 1 ;;
+          esac
+
+      - name: Add Allure executor
+        if: always()
+        env:
+          SUITE: ${{ inputs.suite }}
+        run: |
+          if [ -d allure-results ]; then
+            cat > allure-results/executor.json <<EOF
+          {
+            "name": "GitHub Actions",
+            "type": "github",
+            "buildName": "${SUITE} - Run #${GITHUB_RUN_NUMBER}",
+            "buildUrl": "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          }
+          EOF
+          fi
+
+      - name: Generate Allure single-file report
+        id: allure
+        if: always()
+        run: |
+          if [ -d allure-results ] && [ -n "$(find allure-results -maxdepth 1 -name '*-result.json' -print -quit)" ]; then
+            npx allure generate allure-results --clean --single-file -o allure-report
+            test -f allure-report/index.html
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+            echo "No Allure results were generated."
+          fi
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ inputs.suite }}-allure-report
+          path: allure-report/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ inputs.suite }}-playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Upload UI debugging artifacts
+        if: always() && inputs.suite != 'api'
+        uses: actions/upload-artifact@v5
+        with:
+          name: ui-debugging-artifacts
+          path: |
+            test-results/
+            docs/screenshots/checkout-success.png
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Configure GitHub Pages
+        if: always() && steps.allure.outputs.generated == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        if: always() && steps.allure.outputs.generated == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: allure-report/
+
+  deploy:
+    name: Publish Allure Report
+    needs: test
+    if: always() && needs.test.outputs.allure_generated == 'true'
+    runs-on: ubuntu-24.04
+
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,72 @@
+{
+  // tsconfig.json tells the TypeScript compiler (and your IDE)
+  // how to parse, type-check, and resolve modules in this project.
+  // It controls: language target, module system, path aliases, strictness,
+  // which files are included/excluded from type-checking, etc.
+
+  "compilerOptions": {
+    // JavaScript language level to emit/check against.
+    // ES2022 is appropriate for the Node.js versions supported by this project.
+    "target": "ES2022",
+
+    // Module system used by Node/Playwright tests.
+    // Node16 preserves CommonJS for this project without package.json type=module.
+    "module": "Node16",
+
+    // Resolve imports with the supported Node module resolution mode.
+    "moduleResolution": "Node16",
+
+    // Turn on the full suite of strict type checks (recommended).
+    "strict": true,
+
+    // Smoother interop between CommonJS and ES modules in TypeScript.
+    "esModuleInterop": true,
+
+    // Skip type-checking of .d.ts files from dependencies (faster editor/CI).
+    "skipLibCheck": true,
+
+    // Don’t emit JS output when running tsc (Playwright executes TS via its runner).
+    "noEmit": true,
+
+    // ===== Path alias =====
+    // Define the alias so "@/utils/example" resolves to
+    // "<projectRoot>/utils/example".
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+
+    // Make TypeScript aware of Node and Playwright Test types in the editor.
+    "types": [
+      "node",
+      "@playwright/test"
+    ],
+
+    // Which global libraries are available (ES features + DOM APIs for page objects).
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
+  },
+
+  // Files/folders to include in type-checking (test and support code).
+  "include": [
+    "tests/**/*.ts",
+    "pages/**/*.ts",
+    "api/**/*.ts",
+    "utils/**/*.ts",
+    "config/**/*.ts",
+    "test-data/**/*.ts",
+    "playwright.config.ts"
+  ],
+
+  // Exclude generated/third-party folders so TypeScript doesn't scan them.
+  "exclude": [
+    "node_modules",
+    "playwright-report",
+    "test-results",
+    "allure-results",
+    "allure-report"
+  ]
+}
