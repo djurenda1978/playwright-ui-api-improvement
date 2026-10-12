@@ -77,7 +77,7 @@ Reports are saved as artifacts, including after test failures.
 
 The latest Allure test report is published to GitHub Pages:
 
-https://djurenda1978.github.io/ottometric-demo-task/
+https://djurenda1978.github.io/playwright-ui-api-improvement/
 
 The published report reflects the most recently published test suite.
 
