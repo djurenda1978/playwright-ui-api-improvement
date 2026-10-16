@@ -67,7 +67,6 @@ test('TEST 4 - Successfully completes a product purchase', async ({ page }) => {
         await checkoutCompletePage.backToProducts();
         await inventoryPage.expectPageLoaded();
 
-        await inventoryPage.openMenu();
         await inventoryPage.logout();
         await loginPage.expectPageLoaded();
     });

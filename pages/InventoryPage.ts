@@ -56,12 +56,8 @@ export class InventoryPage extends BasePage {
         await this.cartLink.click();
     }
 
-    async openMenu(): Promise<void> {
-        await this.menuButton.click();
-        await expect(this.logoutLink).toBeVisible();
-    }
-
     async logout(): Promise<void> {
+        await this.menuButton.click();
         await this.logoutLink.click();
     }
 }
