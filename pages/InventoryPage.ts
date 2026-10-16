@@ -25,8 +25,13 @@ export class InventoryPage extends BasePage {
     // Add a product by its one-based number and save its name and price for later assertions.
     async addProductToCart(productNumber: number): Promise<{ name: string; price: string }> {
 
-        if (productNumber < 1) {
-            throw new Error('Product number must be greater than 0');
+        const productCount = await this.productItems.count();
+
+        if (!Number.isInteger(productNumber) ||
+            productNumber < 1 ||
+            productNumber > productCount
+        ) {
+            throw new Error(`Product number must be between 1 and ${productCount}`);
         }
 
         const productItem = this.productItems.nth(productNumber - 1);

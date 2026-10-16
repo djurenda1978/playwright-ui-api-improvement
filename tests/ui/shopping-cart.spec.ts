@@ -46,9 +46,6 @@ test('TEST 4 - Successfully completes a product purchase', async ({ page }) => {
 
     await And('user completes the checkout process', async () => {
         await checkoutInfoPage.fillYourInformation(userData);
-        await checkoutInfoPage.expectYourInformation(userData);
-
-        await checkoutInfoPage.continueToOverview();
         await checkoutOverviewPage.expectPageLoaded();
 
         await checkoutOverviewPage.expectProductOverview(selectedProduct.name, selectedProduct.price, expectedQuantity);

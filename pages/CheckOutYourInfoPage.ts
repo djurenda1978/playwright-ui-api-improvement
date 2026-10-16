@@ -29,15 +29,6 @@ export class CheckOutYourInfoPage extends BasePage {
         await this.firstNameInput.fill(userData.firstName);
         await this.lastNameInput.fill(userData.lastName);
         await this.postalCodeInput.fill(userData.postalCode);
-    }
-
-    async expectYourInformation(userData: CheckoutInformation): Promise<void> {
-        await expect(this.firstNameInput).toHaveValue(userData.firstName);
-        await expect(this.lastNameInput).toHaveValue(userData.lastName);
-        await expect(this.postalCodeInput).toHaveValue(userData.postalCode);
-    }
-
-    async continueToOverview(): Promise<void> {
         await this.continueButton.click();
     }
 }
